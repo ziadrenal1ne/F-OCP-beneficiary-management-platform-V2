@@ -1,0 +1,3 @@
+name,city,province,region,sector,address,lat,lng,phone,email,status,description
+Coopérative Demo Témara,Témara,Skhirate-Témara,Rabat-Salé-Kénitra,Agriculture,12 avenue Hassan II,33.9272,-6.9128,+212 537000000,demo.temara@focp.ma,pending,Coopérative d'exemple pour l'import CSV
+Coopérative des Figuiers de Chefchaouen,Chefchaouen,Chefchaouen,Tanger-Tétouan-Al Hoceïma,Agriculture,3 rue de la Kasbah,35.1688,-5.2636,+212 539000001,figuiers@focp.ma,active,Valorisation des figues fraîches et séchées
