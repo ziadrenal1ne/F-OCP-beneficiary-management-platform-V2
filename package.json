@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx scripts/setup-db.ts && next dev --turbopack",
-    "build": "tsx scripts/setup-db.ts && next build --turbopack",
+    "dev": "tsx scripts/setup-db.ts && next dev",
+    "build": "tsx scripts/setup-db.ts && next build",
     "start": "next start",
     "lint": "eslint",
     "db:push": "drizzle-kit push",
