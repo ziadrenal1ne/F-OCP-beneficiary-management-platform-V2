@@ -1,0 +1,202 @@
+// Documentation-only Prisma schema mirroring the SQL migrations.
+// Runtime uses Postgres / PGLite via `@/lib/db` — this file is not executed.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  userId         String   @id @map("user_id")
+  role           String
+  cooperativeId  Int?     @map("cooperative_id")
+  displayName    String?  @map("display_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+  cooperative    Cooperative? @relation(fields: [cooperativeId], references: [id])
+
+  @@map("profiles")
+}
+
+model Odd {
+  id        Int      @id @default(autoincrement())
+  code      Int      @unique
+  nameFr    String   @map("name_fr")
+  shortName String   @map("short_name")
+  color     String
+  coops     CooperativeOdd[]
+
+  @@map("odds")
+}
+
+model Cooperative {
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String   @default("")
+  address       String   @default("")
+  city          String
+  province      String
+  region        String
+  country       String   @default("Maroc")
+  lat           Float
+  lng           Float
+  phone         String   @default("")
+  email         String   @default("")
+  website       String   @default("")
+  sector        String
+  legalStatus   String   @default("Coopérative") @map("legal_status")
+  createdDate   DateTime? @map("created_date") @db.Date
+  status        String   @default("active")
+  logoInitials  String   @default("") @map("logo_initials")
+  createdAt     DateTime @default(now()) @map("created_at")
+  profiles      Profile[]
+  odds          CooperativeOdd[]
+  stats         BeneficiaryStat[]
+  reports       Report[]
+  conventions   Convention[]
+  documents     Document[]
+  esg           EsgIndicator[]
+  notifications Notification[]
+
+  @@map("cooperatives")
+}
+
+model CooperativeOdd {
+  cooperativeId Int @map("cooperative_id")
+  oddId         Int @map("odd_id")
+  cooperative   Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+  odd           Odd @relation(fields: [oddId], references: [id], onDelete: Cascade)
+
+  @@id([cooperativeId, oddId])
+  @@map("cooperative_odds")
+}
+
+model BeneficiaryStat {
+  id             Int      @id @default(autoincrement())
+  cooperativeId  Int      @map("cooperative_id")
+  year           Int
+  month          Int
+  women          Int      @default(0)
+  men            Int      @default(0)
+  youth          Int      @default(0)
+  adults         Int      @default(0)
+  children       Int      @default(0)
+  disabled       Int      @default(0)
+  indirect       Int      @default(0)
+  updatedAt      DateTime @default(now()) @map("updated_at")
+  cooperative    Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@unique([cooperativeId, year, month])
+  @@map("beneficiary_stats")
+}
+
+model Report {
+  id               Int       @id @default(autoincrement())
+  cooperativeId    Int       @map("cooperative_id")
+  year             Int
+  month            Int
+  title            String
+  activitySummary  String    @default("") @map("activity_summary")
+  achievements     String    @default("")
+  challenges       String    @default("")
+  futureActions    String    @default("") @map("future_actions")
+  women            Int       @default(0)
+  men              Int       @default(0)
+  youth            Int       @default(0)
+  adults           Int       @default(0)
+  children         Int       @default(0)
+  disabled         Int       @default(0)
+  indirect         Int       @default(0)
+  status           String    @default("draft")
+  submittedAt      DateTime? @map("submitted_at")
+  reviewedAt       DateTime? @map("reviewed_at")
+  reviewedBy       String?   @map("reviewed_by")
+  reviewComment    String?   @map("review_comment")
+  createdBy        String?   @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  cooperative      Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@map("reports")
+}
+
+model Convention {
+  id            Int      @id @default(autoincrement())
+  cooperativeId Int      @map("cooperative_id")
+  title         String
+  partner       String
+  startDate     DateTime @map("start_date") @db.Date
+  endDate       DateTime @map("end_date") @db.Date
+  amount        Decimal  @default(0) @db.Decimal(14, 2)
+  status        String   @default("active")
+  description   String   @default("")
+  createdAt     DateTime @default(now()) @map("created_at")
+  cooperative   Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@map("conventions")
+}
+
+model Document {
+  id            Int      @id @default(autoincrement())
+  cooperativeId Int      @map("cooperative_id")
+  name          String
+  category      String
+  mimeType      String   @map("mime_type")
+  sizeBytes     Int      @default(0) @map("size_bytes")
+  version       Int      @default(1)
+  status        String   @default("pending")
+  ownerUserId   String?  @map("owner_user_id")
+  contentBase64 String?  @map("content_base64")
+  uploadedAt    DateTime @default(now()) @map("uploaded_at")
+  cooperative   Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model EsgIndicator {
+  id                   Int      @id @default(autoincrement())
+  cooperativeId        Int      @map("cooperative_id")
+  year                 Int
+  environmentalScore   Decimal  @map("environmental_score") @db.Decimal(5, 2)
+  socialScore          Decimal  @map("social_score") @db.Decimal(5, 2)
+  governanceScore      Decimal  @map("governance_score") @db.Decimal(5, 2)
+  waterSavedM3         Int      @default(0) @map("water_saved_m3")
+  renewableEnergyKwh   Int      @default(0) @map("renewable_energy_kwh")
+  jobsCreated          Int      @default(0) @map("jobs_created")
+  trainingHours        Int      @default(0) @map("training_hours")
+  notes                String   @default("")
+  cooperative          Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@unique([cooperativeId, year])
+  @@map("esg_indicators")
+}
+
+model Notification {
+  id             Int      @id @default(autoincrement())
+  userId         String?  @map("user_id")
+  roleTarget     String?  @map("role_target")
+  cooperativeId  Int?     @map("cooperative_id")
+  type           String
+  title          String
+  body           String   @default("")
+  href           String?
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now()) @map("created_at")
+  cooperative    Cooperative? @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  details    String   @default("")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
